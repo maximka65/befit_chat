@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <title>Админ-панель</title>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #e9ecef;
+            margin: 0;
+            padding: 0;
+            color: #343a40;
+        }
+
+        h3 {
+            font-size: 18px;
+            color: #495057;
+            margin-top: 20px;
+            border-bottom: 1px solid #ced4da;
+            padding-bottom: 5px;
+        }
+
+        .user-list-item {
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            background-color: #f8f9fa;
+            position: relative; /* Убедитесь, что элементы внутри позиционируются относительно родителя */
+            word-wrap: break-word; /* Переносите длинные слова, чтобы избежать выхода текста за границы */
+        }
+
+        .user-list-item.has-request {
+            background-color: #fff3cd;
+        }
+
+        .user-list-item.has-request::before {
+            content: "📝";
+            position: absolute;
+            top: 10px;
+            left: -25px;
+            font-size: 18px;
+            color: #ffc107;
+        }
+
+        .user-list-item.selected {
+            background-color: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+        }
+
+        .user-list-item .last-message-time {
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+
+        .user-list-item .toggle-details {
+            background-color: transparent;
+            border: none;
+            color: #007bff;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .user-list-item .user-agent, .user-list-item .page-url {
+            display: none;
+            font-size: 12px;
+            color: #868e96;
+            margin-top: 5px;
+        }
+
+        .highlight {
+            background-color: #ffeeba;
+        }
+
+        .container {
+            width: 90%;
+            margin: 20px auto;
+            display: flex;
+            justify-content: space-between;
+            height: calc(100vh - 60px);
+        }
+
+        .sidebar {
+            width: 18%;
+            background-color: #ffffff;
+            border: 1px solid #ced4da;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-height: calc(100vh - 10px); /* Ограничьте максимальную высоту контейнера, учитывая отступы */
+            overflow-y: auto;
+        }
+
+        .content {
+            width: 55%;
+            background-color: #ffffff;
+            border: 1px solid #ced4da;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+
+        }
+
+        .requests-column {
+            width: 20%;
+            background-color: #ffffff;
+            border: 1px solid #ced4da;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-height: calc(100vh - 10px); /* Ограничьте максимальную высоту контейнера, учитывая отступы */
+            overflow-y: auto; /* Добавьте вертикальную прокрутку, если содержимое превышает высоту контейнера */
+        }
+        .panel h2 {
+            margin-top: 0;
+            font-size: 26px;
+            color: #495057;
+        }
+
+        .panel-buttons {
+            display: flex;
+            justify-content: flex-start;
+            margin-bottom: 20px;
+        }
+
+        .panel-buttons button {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            border-radius: 5px;
+            margin-right: 10px;
+            transition: background-color 0.3s ease;
+        }
+
+        .panel-buttons button:hover {
+            background-color: #0056b3;
+        }
+
+        .messages {
+            flex-grow: 1;
+            height: 80%;
+            overflow-y: auto;
+            max-height: calc(100vh - 150px); /* Убедитесь, что высота контейнера позволяет отображать все сообщения */
+            overflow-y: auto; /* Добавьте вертикальную прокрутку для сообщений */
+        }
+        .active {
+            display: block !important;
+        }
+
+        .message, .request {
+            padding: 10px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .message:last-child, .request:last-child {
+            border-bottom: none;
+        }
+
+        .message.user-message {
+            text-align: left;
+            max-width: 50%;
+            background-color: #dcf8c6;
+            border-radius: 20px;
+            padding: 10px 15px;
+            margin-bottom: 10px;
+            margin-left: auto;
+            margin-right: 10px;
+            position: relative;
+        }
+
+        .message.bot-message {
+            text-align: left;
+            max-width: 50%;
+            background-color: #cce5ff;
+            border-radius: 20px;
+            padding: 10px 15px;
+            margin-bottom: 10px;
+            margin-right: auto;
+            position: relative;
+        }
+
+        .message .timestamp {
+            font-size: 12px;
+            color: #6c757d;
+            text-align: right;
+            display: block;
+            margin-top: 10px;
+            margin-right: 10px;
+        }
+
+        .highlight {
+            background-color: #ffeeba;
+            border-color: #ffdf7e;
+        }
+
+        .admin {
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        .requests-column h2 {
+            text-align: center;
+            margin-top: 0;
+            font-size: 22px;
+            color: #495057;
+            border-bottom: 1px solid #ced4da;
+            padding-bottom: 8px;
+            margin-bottom: 15px;
+        }
+
+        .request {
+            background-color: #f8f9fa;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+            box-shadow: none;
+        }
+
+        .request .contact-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .request .contact-info .name-container,
+        .request .contact-info .phone-container {
+            padding: 4px;
+            border-radius: 3px;
+            font-size: 12px;
+            color: #fff;
+            width: 48%;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .request .contact-info .name-container {
+            background-color: #5a9bd5;
+        }
+
+        .request .contact-info .phone-container {
+            background-color: #82c68e;
+        }
+
+        .request .message-content {
+            font-size: 14px;
+            color: #343a40;
+            margin-bottom: 8px;
+            padding-left: 10px;
+            border-left: 2px solid #007bff;
+        }
+
+        .request .timestamp {
+            font-size: 11px;
+            color: #6c757d;
+            text-align: right;
+        }
+
+        .message-input-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            box-sizing: border-box;
+            width: 100%; /* Установите ширину в 100% */
+            background-color: #f8f9fa;
+            border-top: 1px solid #ced4da;
+            border-radius: 0 0 8px 8px;
+        }
+
+        .message-input-container textarea {
+            flex-grow: 1;
+            margin-right: 10px;
+            padding: 12px 15px;
+            height: 100px; /* Увеличиваем высоту поля для ввода */
+            border-radius: 8px; /* Немного меньший радиус скругления */
+            border: 1px solid #ced4da;
+            font-size: 16px; /* Увеличенный размер шрифта для лучшей читаемости */
+            font-family: 'Roboto', sans-serif;
+            box-sizing: border-box;
+            outline: none;
+            transition: box-shadow 0.3s ease;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .message-input-container textarea:focus {
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+            border-color: #007bff;
+        }
+
+        .message-input-container button {
+            flex-shrink: 0;
+            padding: 10px 20px; /* Уменьшенные отступы для кнопки */
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 8px; /* Соответствие радиусу поля ввода */
+            cursor: pointer;
+            font-size: 16px; /* Размер шрифта, соответствующий полю ввода */
+            font-family: 'Roboto', sans-serif;
+            box-shadow: 0 4px 6px rgba(0, 123, 255, 0.3);
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .message-input-container button:hover {
+            background-color: #0056b3;
+            box-shadow: 0 6px 10px rgba(0, 123, 255, 0.5);
+        }
+
+        .message-input-container button:active {
+            background-color: #004085;
+            box-shadow: 0 4px 6px rgba(0, 123, 255, 0.7);
+        }
+
+        .message, .user-message, .bot-message {
+            font-size: 14px; /* Уменьшите значение для уменьшения шрифта */
+            line-height: 1.4; /* Регулируйте межстрочный интервал для лучшей читаемости */
+        }
+
+        .message .timestamp {
+            font-size: 12px; /* Также можно уменьшить размер шрифта для отметки времени */
+        }
+
+        /* Общие стили для всех ползунков */
+        ::-webkit-scrollbar {
+            width: 8px; /* Ширина вертикального ползунка */
+            height: 8px; /* Высота горизонтального ползунка */
+        }
+
+        /* Цвет и радиус области ползунка */
+        ::-webkit-scrollbar-thumb {
+            background-color: #adb5bd; /* Мягкий серый цвет ползунка */
+            border-radius: 10px; /* Радиус закругления */
+        }
+
+        /* Фоновая область ползунка */
+        ::-webkit-scrollbar-track {
+            background-color: #e9ecef; /* Светло-серый фон под ползунком */
+            border-radius: 10px; /* Радиус закругления фона */
+        }
+
+        /* Ползунок в активном состоянии */
+        ::-webkit-scrollbar-thumb:hover {
+            background-color: #6c757d; /* Темно-серый цвет при наведении */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar" id="sidebar">
+            <div class="users active" id="user-list">
+                {% for user in users %}
+                    {% if loop.first or users[loop.index0 - 1].time_category != user.time_category %}
+                        <h3>{{ user.time_category }}</h3>
+                    {% endif %}
+                    <div class="user-list-item {% if user.has_request %}has-request{% endif %}"
+                         data-session-id="{{ user.session_id }}"
+                         onclick="selectUser(this); loadUserMessages('{{ user.session_id }}')">
+                        <strong>{{ user.display_name }}</strong>
+                        <button class="toggle-details" onclick="toggleDetails(this)">Подробнее</button>
+                        <div class="user-agent">{{ user.user_agent }}</div>
+                        <div class="page-url">{{ user.page_url }}</div>
+                        <div class="last-message-time">Последнее сообщение: {{ user.last_message_time }}</div>
+                    </div>
+                {% endfor %}
+            </div>
+            <div class="chat-window" id="chatWindow" style="display: none;">
+                <button class="back-button" id="backButton">Назад</button>
+                <div class="messages-list" id="messagesList">
+                    <!-- Сообщения пользователя -->
+                </div>
+            </div>
+        </div>
+
+        <div class="content" id="messages-container">
+            <h2 id="messages-header">Сообщения</h2>
+            <div class="messages" id="messages">
+                <!-- Сообщения будут загружены здесь -->
+            </div>
+            <div class="message-input-container" id="message-input-container">
+                <textarea id="admin-message-input" placeholder="Введите сообщение..."></textarea>
+                <button id="send-admin-message">Отправить</button>
+            </div>
+        </div>
+
+        <div class="requests-column" id="requests-container">
+            <h2>Заявки</h2>
+            <div id="requests">
+                {% for req in requests %}
+                <div class="request {% if req.time_category == 'Сегодня' %}highlight{% endif %}">
+                    <div class="contact-info">
+                        <div class="name-container">
+                            <strong></strong> {{ req.name }}
+                        </div>
+                        <div class="phone-container">
+                            <strong></strong> {{ req.phone }}
+                        </div>
+                    </div>
+                    <div class="message-content">
+                        <strong>Сообщение:</strong> {{ req.message }}
+                    </div>
+                    <div class="timestamp">
+                        <strong>{{ req.time_category }}:</strong> {{ req.timestamp }}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+
+    <script>
+        const socket = io('https://bot-fit.ru', { transports: ['websocket', 'polling'] });
+
+        socket.on('connect', () => {
+            console.log('Connected to WebSocket');
+        });
+
+        socket.on('new_message', msg => {
+            console.log("New message received:", msg);
+
+            // Получаем sessionId текущего выбранного пользователя
+            const selectedUser = document.querySelector('.user-list-item.selected');
+            const selectedSessionId = selectedUser ? selectedUser.getAttribute('data-session-id') : null;
+
+            // Проверяем, относится ли полученное сообщение к выбранному пользователю
+            if (selectedSessionId && selectedSessionId === msg.user_session) {
+                displayMessage(msg); // Если сообщение относится к выбранному пользователю, отображаем его
+            } else {
+                console.log('Сообщение от другого пользователя, не отображаем в текущем окне.');
+            }
+        });
+
+
+        function displayMessage(msg) {
+            console.log("Displaying message:", msg);
+            const messagesContainer = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message');
+            messageDiv.classList.add(msg.sender === 'user' ? 'user-message' : msg.sender === 'bot' ? 'bot-message' : 'admin-message');
+
+            const formattedText = formatText(msg.text).replace(/\n/g, '<br>');
+
+            const timestamp = new Date(msg.timestamp);
+            timestamp.setHours(timestamp.getHours() + 3);
+
+            const formattedTime = timestamp.toLocaleString('ru-RU', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            messageDiv.innerHTML = `<strong class="${msg.sender}">${msg.sender}:</strong> ${formattedText} <div class="timestamp">${formattedTime}</div>`;
+            messagesContainer.appendChild(messageDiv);
+
+            // Прокрутка вниз до последнего сообщения
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // Функция для удаления звездочек из текста
+        function formatText(text) {
+            return text.replace(/\*\*/g, ''); // Удаляем все вхождения **
+        }
+
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const firstUser = document.querySelector('.user-list-item');
+
+            if (firstUser) {
+                selectUser(firstUser);
+
+                // Сразу загружаем сообщения для выбранного пользователя
+                const sessionId = firstUser.getAttribute('data-session-id');
+                loadUserMessages(sessionId);
+
+                // Запускаем таймер для периодической проверки новых сообщений для выбранного пользователя
+                setInterval(() => {
+                    const selectedUser = document.querySelector('.user-list-item.selected');
+                    if (selectedUser) {
+                        const sessionId = selectedUser.getAttribute('data-session-id');
+                        loadUserMessages(sessionId);
+                    }
+                }, 5000); // Каждые 5 секунд
+            }
+        });
+
+
+
+        document.getElementById('send-admin-message').addEventListener('click', sendMessage);
+
+        function sendMessage() {
+            const message = document.getElementById('admin-message-input').value;
+            const selectedUser = document.querySelector('.user-list-item.selected');
+            if (!selectedUser || !message) return;
+
+            const userSession = selectedUser.getAttribute('data-session-id');
+
+            // Показать сообщение в интерфейсе сразу
+            const messagesContainer = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', 'admin-message');
+            const timestamp = new Date();
+            const formattedTime = timestamp.toLocaleString('ru-RU', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            messageDiv.innerHTML = `<strong class="admin">admin:</strong> ${message} <div class="timestamp">${formattedTime}</div>`;
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+            fetch('/send_admin_message', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: `userSession=${encodeURIComponent(userSession)}&message=${encodeURIComponent(message)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    document.getElementById('admin-message-input').value = '';
+                    // Обновите историю сообщений после получения подтверждения
+                    loadUserMessages(userSession);
+                } else {
+                    alert('Ошибка отправки сообщения');
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка:', error);
+            });
+        }
+
+        function selectUser(element) {
+            const users = document.querySelectorAll('.user-list-item');
+            users.forEach(user => user.classList.remove('selected'));
+            element.classList.add('selected');
+
+            const contentPanel = document.getElementById('messages-container');
+            const sidebar = document.getElementById('sidebar');
+            const requestsColumn = document.getElementById('requests-container');
+
+            contentPanel.classList.add('active');
+            sidebar.classList.remove('active');
+            sidebar.classList.add('hidden');
+            requestsColumn.classList.remove('active');
+            requestsColumn.classList.add('hidden');
+
+            const messageInputContainer = document.getElementById('message-input-container');
+            messageInputContainer.style.display = 'flex';
+
+            const userName = element.querySelector('strong').textContent;
+            const header = document.getElementById('messages-header');
+            header.textContent = userName;
+        }
+
+        let autoScroll = true;
+
+        document.getElementById('messages').addEventListener('scroll', function() {
+            const messagesContainer = this;
+            // Если пользователь прокручивает вверх, отключаем автоматическую прокрутку
+            if (messagesContainer.scrollTop + messagesContainer.clientHeight < messagesContainer.scrollHeight) {
+                autoScroll = false;
+            } else {
+                autoScroll = true;
+            }
+        });
+
+
+        function loadUserMessages(sessionId) {
+            const timestamp = new Date().getTime();
+            fetch(`/proxy/history?userSession=${sessionId}&_=${timestamp}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Ошибка сети');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const messagesContainer = document.getElementById('messages');
+                    messagesContainer.innerHTML = ''; // Очистка текущей истории перед загрузкой новой
+
+                    if (data.messages && data.messages.length > 0) {
+                        data.messages.forEach(msg => {
+                            // Создаем элемент сообщения
+                            const messageDiv = document.createElement('div');
+                            messageDiv.classList.add('message');
+                            messageDiv.classList.add(msg.sender === 'user' ? 'user-message' : msg.sender === 'bot' ? 'bot-message' : 'admin-message');
+
+                            const formattedText = formatText(msg.text).replace(/\n/g, '<br>');
+
+                            const timestamp = new Date(msg.timestamp);
+                            timestamp.setHours(timestamp.getHours() + 3);
+
+                            const formattedTime = timestamp.toLocaleString('ru-RU', {
+                                year: 'numeric',
+                                month: '2-digit',
+                                day: '2-digit',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            });
+
+                            messageDiv.innerHTML = `<strong class="${msg.sender}">${msg.sender}:</strong> ${formattedText} <div class="timestamp">${formattedTime}</div>`;
+                            messagesContainer.appendChild(messageDiv);
+                        });
+
+                        // Если включена автоматическая прокрутка, прокручиваем до последнего сообщения
+                        if (autoScroll) {
+                            setTimeout(() => {
+                                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                            }, 100); // Небольшая задержка, чтобы убедиться, что все элементы отрисованы
+                        }
+                    } else {
+                        console.warn('Нет доступных сообщений для загрузки');
+                    }
+                })
+                .catch(error => {
+                    console.error('Ошибка при загрузке сообщений:', error);
+                });
+        }
+
+
+        // Функция для удаления звездочек из текста
+        function formatText(text) {
+            return text.replace(/\*\*/g, ''); // Удаляем все вхождения **
+        }
+
+
+        function toggleDetails(button) {
+            const userDiv = button.parentElement;
+            const userAgent = userDiv.querySelector('.user-agent');
+            const pageUrl = userDiv.querySelector('.page-url');
+            const isVisible = userAgent.style.display === 'block';
+
+            if (isVisible) {
+                userAgent.style.display = 'none';
+                pageUrl.style.display = 'none';
+                button.textContent = 'Подробнее';
+            } else {
+                userAgent.style.display = 'block';
+                pageUrl.style.display = 'block';
+                button.textContent = 'Скрыть';
+            }
+        }
+    </script>
+</body>
+</html>
