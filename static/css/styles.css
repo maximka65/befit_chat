@@ -1,0 +1,612 @@
+/* Основной контейнер виджета чата */
+#chat-widget {
+    z-index: 9999; /* Устанавливаем виджет поверх всех остальных элементов */
+    touch-action: manipulation; /* Отключаем зум и прокрутку для тачскрина */
+    position: fixed; /* Фиксируем виджет в нижней части экрана */
+    bottom: 120px; /* Отступ от нижнего края */
+    right: 80px; /* Отступ от правого края */
+    width: 400px; /* Ширина виджета */
+    height: 70vh; /* Высота 70% экрана */
+    border-radius: 20px; /* Закругленные углы */
+    background: #2c2c2e; /* Фон виджета */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); /* Тень виджета */
+    display: none; /* Изначально скрыт */
+    flex-direction: column; /* Колонка для внутреннего размещения элементов */
+    font-family: Arial, sans-serif; /* Шрифт текста */
+}
+
+/* Шапка чата */
+#chat-header {
+    background-color: #1c1c1e; /* Фон шапки */
+    padding: 15px; /* Внутренние отступы */
+    border-top-left-radius: 20px; /* Закругление углов сверху слева */
+    border-top-right-radius: 20px; /* Закругление углов сверху справа */
+    display: flex; /* Flexbox для содержимого */
+    flex-direction: column; /* Размещение элементов по вертикали */
+    align-items: center; /* Центрирование по горизонтали */
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.2); /* Тень под шапкой */
+    position: relative; /* Для дочерних элементов с абсолютным позиционированием */
+}
+
+/* Дополнительный элемент в правом верхнем углу шапки */
+#chat-header::before {
+    content: ''; /* Псевдоэлемент */
+    position: absolute; /* Абсолютное позиционирование */
+    top: 0;
+    right: 0;
+    width: 35px; /* Ширина */
+    height: 35px; /* Высота */
+    background-color: #7eca1d; /* Фон */
+    border-top-right-radius: 15px; /* Закругление углов сверху справа */
+    border-bottom-left-radius: 20px; /* Закругление углов снизу слева */
+}
+
+/* Контейнер содержимого в шапке */
+#header-content {
+    width: 100%; /* Ширина 100% */
+    display: flex; /* Flexbox для содержимого */
+    justify-content: space-between; /* Размещение по краям */
+    align-items: center; /* Центрирование по вертикали */
+    font-size: 15px; /* Размер текста */
+    color: #e5e5e7; /* Цвет текста */
+    position: relative; /* Для абсолютного позиционирования дочерних элементов */
+    text-align: center; /* Центрирование текста */
+}
+
+/* Номер телефона или заголовок */
+#phone-number {
+    width: 90%; /* Ширина 90% */
+}
+
+/* Кнопка закрытия чата */
+#close-chat {
+    background: none; /* Без фона */
+    color: #000000; /* Цвет текста */
+    border: none; /* Без границ */
+    border-radius: 0; /* Без скругления углов */
+    width: 40px; /* Ширина кнопки */
+    height: 40px; /* Высота кнопки */
+    font-size: 20px; /* Размер шрифта */
+    cursor: pointer; /* Указатель при наведении */
+    display: flex; /* Flexbox для выравнивания содержимого */
+    align-items: center; /* Центрирование по вертикали */
+    justify-content: center; /* Центрирование по горизонтали */
+    position: absolute; /* Абсолютное позиционирование */
+    top: 0;
+    right: 0;
+    transform: translate(50%, -50%); /* Смещение для правильного позиционирования */
+    box-shadow: none; /* Без тени */
+}
+
+/* Вкладки чата (если используются) */
+#chat-tabs {
+    display: flex; /* Flexbox для размещения вкладок */
+    justify-content: space-around; /* Пространство между вкладками */
+    width: 100%; /* Ширина 100% */
+    margin-top: 10px; /* Отступ сверху */
+    border-bottom: 1px solid #444; /* Нижняя граница */
+}
+
+/* Стиль каждой вкладки */
+.tab {
+    padding: 10px; /* Внутренние отступы */
+    cursor: pointer; /* Указатель при наведении */
+    font-size: 14px; /* Размер шрифта */
+    color: #e5e5e7; /* Цвет текста */
+    display: flex; /* Flexbox для выравнивания содержимого */
+    align-items: center; /* Центрирование по вертикали */
+    border: none; /* Без границ */
+    background: none; /* Без фона */
+    box-shadow: none; /* Без тени */
+    outline: none; /* Без обводки при фокусе */
+    border-radius: 0; /* Без скругления углов */
+    position: relative; /* Для псевдоэлементов */
+}
+
+/* Картинка на вкладке */
+.tab img {
+    width: 16px; /* Ширина картинки */
+    height: 16px; /* Высота картинки */
+    margin-right: 8px; /* Отступ справа */
+    border: none; /* Без границы */
+    box-shadow: none; /* Без тени */
+    background: none; /* Без фона */
+    outline: none; /* Без обводки */
+    vertical-align: middle; /* Вертикальное выравнивание */
+}
+
+/* Убираем обводку у вкладки при фокусе или активном состоянии */
+.tab:focus, .tab:active {
+    outline: none; /* Без обводки */
+    box-shadow: none; /* Без тени */
+}
+
+/* Стиль активной вкладки */
+.tab.active {
+    color: #7eca1d; /* Цвет текста активной вкладки */
+}
+
+/* Псевдоэлемент для активной вкладки (подчеркивание) */
+.tab.active::after {
+    content: ''; /* Псевдоэлемент */
+    position: absolute; /* Абсолютное позиционирование */
+    bottom: -1px; /* Расположение внизу */
+    left: 0;
+    right: 0;
+    height: 3px; /* Высота линии */
+    background-color: #7eca1d; /* Цвет линии */
+}
+
+/* Блок сообщений в чате */
+#chat-messages {
+    height: 100px; /* Минимальная высота */
+    flex: 1; /* Гибкое изменение высоты */
+    padding: 15px; /* Внутренние отступы */
+    overflow-y: auto; /* Прокрутка по вертикали */
+    background-color: #3a3a3c; /* Фон блока */
+    scrollbar-width: none; /* Убираем стандартные полосы прокрутки */
+}
+
+/* Убираем полосу прокрутки в WebKit-браузерах */
+#chat-messages::-webkit-scrollbar {
+    display: none; /* Скрываем полосу прокрутки */
+}
+
+/* Стиль сообщения */
+.message {
+    display: flex; /* Flexbox для выравнивания элементов */
+    margin-bottom: 15px; /* Отступ снизу */
+}
+
+/* Аватарка в сообщении */
+.avatar {
+    margin-right: 10px; /* Отступ справа */
+}
+
+/* Изображение аватара */
+.avatar img {
+    width: 30px; /* Ширина аватара */
+    height: 30px; /* Высота аватара */
+    border-radius: 50%; /* Скругление для создания эффекта круга */
+    object-fit: cover; /* Соответствие пропорциям контейнера */
+}
+
+/* Контент сообщения */
+.message-content {
+    background-color: #48484a; /* Фон сообщения */
+    padding: 10px; /* Внутренние отступы */
+    border-radius: 20px; /* Закругление углов */
+    border-bottom-left-radius: 0px; /* Убираем закругление нижнего левого угла */
+    max-width: 70%; /* Максимальная ширина сообщения */
+    color: #e5e5e7; /* Цвет текста */
+    font-size: 13px; /* Размер шрифта */
+    position: relative; /* Для абсолютного позиционирования дочерних элементов */
+    display: flex; /* Flexbox для выравнивания элементов */
+    align-items: center; /* Центрирование по вертикали */
+}
+
+/* Сообщения от пользователя */
+.message.user-message {
+    justify-content: flex-end; /* Сообщение выравнено по правому краю */
+    margin-right: 20px; /* Отступ справа */
+}
+
+/* Контент сообщений от пользователя */
+.message.user-message .message-content {
+    background-color: #313131; /* Темный фон для сообщений пользователя */
+    color: white; /* Белый цвет текста */
+    text-align: left; /* Текст по левому краю */
+    border-radius: 20px 20px 0 20px; /* Скругление углов с исключением нижнего левого */
+    border: 1px solid white; /* Белая рамка */
+}
+
+/* Убираем аватар для сообщений пользователя */
+.message.user-message .avatar {
+    display: none; /* Не отображаем аватар */
+}
+
+/* Сообщения от администратора (бота) */
+.message.admin-message {
+    display: flex; /* Flexbox для размещения аватара и текста */
+    flex-direction: column; /* Колонка для выравнивания */
+    align-items: flex-start; /* Сообщение выравнено по левому краю */
+    margin-bottom: 15px; /* Отступ снизу */
+    position: relative; /* Для абсолютного позиционирования аватара */
+    padding-left: 40px; /* Отступ слева для аватара */
+}
+
+/* Аватар администратора (бота) */
+.message.admin-message .avatar {
+    position: absolute; /* Абсолютное позиционирование аватара */
+    bottom: 0; /* Расположен внизу блока */
+    left: 0; /* Расположен слева */
+    transform: translateY(50%); /* Смещение для правильного позиционирования */
+    width: 30px; /* Ширина аватара */
+    height: 40px; /* Высота аватара */
+    object-fit: cover; /* Соответствие пропорциям контейнера */
+}
+
+/* Вход пользователя (поле ввода сообщений) */
+#chat-input {
+    margin-top: auto; /* Автоматический отступ сверху для фиксации блока внизу */
+    position: relative; /* Для дочерних элементов */
+    bottom: 0; /* Расположен внизу */
+    padding: 15px; /* Внутренние отступы */
+    background-color: #1c1c1e; /* Фон блока */
+    display: flex; /* Flexbox для выравнивания */
+    align-items: center; /* Центрирование элементов по вертикали */
+    border-bottom-left-radius: 20px; /* Закругление нижнего левого угла */
+    border-bottom-right-radius: 20px; /* Закругление нижнего правого угла */
+    font-size: 13px; /* Размер шрифта */
+    touch-action: none; /* Отключаем жесты тачскрина */
+}
+
+/* Поле ввода текста в чате */
+#chat-input input {
+    flex: 1; /* Поле занимает оставшееся пространство внутри блока */
+    padding: 10px; /* Внутренние отступы для удобства ввода */
+    border-radius: 20px; /* Закругленные углы поля ввода */
+    border: 1px solid #444; /* Тонкая граница */
+    background-color: #2c2c2e; /* Темный фон для поля */
+    color: #e5e5e7; /* Светлый цвет текста */
+    margin-right: 10px; /* Отступ справа для кнопки отправки */
+    font-size: 14px; /* Размер шрифта */
+}
+
+/* Кнопка выбора эмодзи в поле ввода */
+#chat-input .emoji-picker {
+    background-color: transparent; /* Прозрачный фон */
+    border: none; /* Без границы */
+    cursor: pointer; /* Указатель при наведении */
+    margin-right: 10px; /* Отступ справа */
+}
+
+/* Изображение эмодзи в кнопке выбора */
+#chat-input .emoji-picker img {
+    width: 24px; /* Ширина картинки */
+    height: 24px; /* Высота картинки */
+}
+
+/* Кнопка отправки сообщения */
+#chat-input button {
+    background-color: #7eca1d; /* Зеленый фон кнопки */
+    border: none; /* Без границы */
+    border-radius: 50%; /* Круглая форма кнопки */
+    padding: 10px; /* Внутренние отступы */
+    width: 40px; /* Ширина кнопки */
+    height: 40px; /* Высота кнопки */
+    cursor: pointer; /* Указатель при наведении */
+    display: flex; /* Flexbox для выравнивания содержимого */
+    justify-content: center; /* Центрирование по горизонтали */
+    align-items: center; /* Центрирование по вертикали */
+}
+
+/* Изображение иконки отправки сообщения */
+#chat-input button img {
+    width: 20px; /* Ширина иконки */
+    height: 20px; /* Высота иконки */
+}
+
+/* Кнопка открытия чата */
+#open-chat {
+    position: fixed; /* Фиксируем кнопку на экране */
+    bottom: 120px; /* Отступ от нижнего края */
+    right: 80px; /* Отступ от правого края */
+    width: 60px; /* Ширина кнопки */
+    height: 60px; /* Высота кнопки */
+    background-color: #7eca1d; /* Зеленый фон кнопки */
+    color: white; /* Белый цвет текста */
+    border-radius: 50%; /* Круглая форма */
+    border: none; /* Без границы */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); /* Тень для объема */
+    cursor: pointer; /* Указатель при наведении */
+    font-size: 30px; /* Размер текста */
+    display: flex; /* Flexbox для выравнивания содержимого */
+    justify-content: center; /* Центрирование по горизонтали */
+    align-items: center; /* Центрирование по вертикали */
+    animation: ring-animation 1s ease infinite; /* Анимация кнопки */
+}
+
+/* Изменение цвета кнопки при наведении */
+#open-chat:hover {
+    background-color: #558a13; /* Более темный зеленый цвет */
+}
+
+/* Анимация вращения кнопки */
+@keyframes ring-animation {
+    0% { transform: rotate(0deg); }
+    10% { transform: rotate(14deg); }
+    20% { transform: rotate(-8deg); }
+    30% { transform: rotate(14deg); }
+    40% { transform: rotate(-4deg); }
+    50% { transform: rotate(10deg); }
+    60% { transform: rotate(0deg); }
+    100% { transform: rotate(0deg); }
+}
+
+/* Контейнер для быстрых вопросов */
+#quick-questions {
+    display: flex; /* Flexbox для вертикального размещения */
+    flex-direction: column; /* Колонки для кнопок */
+    gap: 5px; /* Расстояние между кнопками */
+    margin: 5px 0; /* Отступы сверху и снизу */
+    align-items: center; /* Центрирование кнопок по горизонтали */
+}
+
+/* Стиль кнопки быстрого вопроса */
+.quick-question-btn {
+    background-color: #7eca1d; /* Зеленый фон */
+    color: black; /* Черный цвет текста */
+    border: none; /* Без границы */
+    border-radius: 15px; /* Закругленные углы */
+    padding: 8px 16px; /* Внутренние отступы */
+    cursor: pointer; /* Указатель при наведении */
+    font-size: 12px; /* Размер шрифта */
+    width: 80%; /* Ширина кнопки 80% от контейнера */
+    max-width: none; /* Убираем ограничение по ширине */
+    word-wrap: break-word; /* Перенос текста на новую строку */
+    transition: background-color 0.3s, transform 0.1s; /* Анимация при наведении */
+    text-align: center; /* Центрируем текст внутри кнопки */
+}
+
+/* Эффект при наведении на кнопку быстрого вопроса */
+.quick-question-btn:hover {
+    background-color: #558a13; /* Более темный зеленый фон */
+    transform: scale(1.03); /* Легкое увеличение кнопки */
+}
+
+/* Контейнер для скрытия/отображения быстрых вопросов */
+#toggle-questions {
+    display: flex; /* Flexbox для центрирования */
+    justify-content: center; /* Центрируем элемент по горизонтали */
+    margin-right: 10px; /* Отступ справа */
+    cursor: pointer; /* Указатель при наведении */
+    margin-top: 5px; /* Отступ сверху */
+    margin-bottom: 5px; /* Отступ снизу */
+}
+
+/* Текст для скрытия/отображения вопросов */
+#toggle-text {
+    color: white; /* Белый цвет текста */
+    font-size: 14px; /* Размер шрифта */
+}
+
+/* Контейнер с анимацией индикатора печатания */
+.typing-dots {
+    display: flex; /* Flexbox для размещения точек */
+    justify-content: left; /* Выровняем точки по левому краю */
+    gap: 5px; /* Расстояние между точками */
+}
+
+/* Стиль для каждой точки индикатора печатания */
+.typing-dots span {
+    display: inline-block; /* Отображаем точки как inline-блоки */
+    width: 8px; /* Ширина каждой точки */
+    height: 8px; /* Высота каждой точки */
+    background-color: #ccc; /* Цвет точки */
+    border-radius: 50%; /* Скругленные точки */
+    opacity: 0; /* Точки изначально невидимы */
+    animation: blink 1.5s infinite both; /* Анимация появления и исчезания */
+}
+
+/* Задержка анимации для первой точки */
+.typing-dots span:nth-child(1) {
+    animation-delay: 0s; /* Без задержки */
+}
+
+/* Задержка анимации для второй точки */
+.typing-dots span:nth-child(2) {
+    animation-delay: 0.2s; /* Задержка 0.2 секунды */
+}
+
+/* Задержка анимации для третьей точки */
+.typing-dots span:nth-child(3) {
+    animation-delay: 0.4s; /* Задержка 0.4 секунды */
+}
+
+/* Анимация мигания точек */
+@keyframes blink {
+    0% {
+        opacity: 0; /* Невидимые точки */
+    }
+    50% {
+        opacity: 1; /* Точки становятся видимыми */
+    }
+    100% {
+        opacity: 0; /* Точки снова исчезают */
+    }
+}
+
+/* Адаптация кнопки для мобильных устройств */
+@media (max-width: 767px) {
+    #open-chat {
+        display: flex; /* Flexbox для выравнивания содержимого */
+        justify-content: center; /* Центрирование по горизонтали */
+        align-items: center; /* Центрирование по вертикали */
+        padding: 0; /* Убираем внутренние отступы */
+        right: 20px; /* Уменьшаем отступ справа */
+        width: 50px; /* Уменьшаем ширину кнопки */
+        height: 50px; /* Уменьшаем высоту кнопки */
+    }
+
+    /* Убираем обводку при нажатии на кнопку на мобильных */
+    #open-chat {
+        -webkit-tap-highlight-color: transparent; /* Отключаем подсветку на мобильных */
+        outline: none; /* Убираем обводку при фокусе */
+    }
+
+    #open-chat:focus {
+        outline: none; /* Убираем обводку при фокусе */
+    }
+
+    #open-chat:active {
+        outline: none; /* Убираем обводку при нажатии */
+    }
+
+    /* Контент внутри шапки чата */
+    #header-content {
+        font-size: 15px; /* Размер шрифта для текста */
+    }
+
+    /* Поле ввода текста в чате */
+    #chat-input input {
+        touch-action: none; /* Отключаем сенсорные действия (например, зум) */
+    }
+
+    /* Основной контейнер чата для мобильных устройств */
+    #chat-widget {
+        margin-bottom: 50px;
+        right: 20px; /* Отступ от правого края экрана */
+        bottom: 0; /* Отступ от нижнего края экрана */
+        width: 90vw; /* Ширина чата 90% от ширины экрана */
+        height: 80vh; /* Высота чата 80% от высоты экрана */
+    }
+
+    /* Кнопка закрытия чата */
+    #close-chat {
+        -webkit-tap-highlight-color: transparent; /* Отключаем выделение при нажатии на мобильных */
+        outline: none; /* Убираем обводку при фокусе */
+    }
+
+    /* Убираем обводку при фокусе на кнопке закрытия */
+    #close-chat:focus {
+        outline: none;
+    }
+
+    /* Убираем обводку при активном состоянии кнопки */
+    #close-chat:active {
+        outline: none;
+    }
+
+    /* Форма для создания заявки */
+    #request-form {
+        display: none; /* Изначально скрыта */
+        box-sizing: border-box; /* Учитываем внутренние отступы в ширине/высоте */
+        padding: 15px; /* Внутренние отступы */
+        background-color: #2c2c2e; /* Фон формы */
+        border-radius: 10px; /* Закругленные углы */
+        color: #e5e5e7; /* Цвет текста */
+    }
+
+    /* Метка для полей формы */
+    #request-form label {
+        display: block; /* Отображаем метку как блок */
+        margin: 10px 0 5px; /* Отступы сверху и снизу */
+    }
+
+    /* Поля ввода и текстовые области формы */
+    #request-form input, #request-form textarea {
+        box-sizing: border-box; /* Учитываем внутренние отступы в ширине/высоте */
+        width: 100%; /* Поля занимают всю ширину родителя */
+        padding: 10px; /* Внутренние отступы */
+        border: 1px solid #444; /* Граница полей */
+        border-radius: 5px; /* Закругленные углы */
+        background-color: #3a3a3c; /* Фон полей */
+        color: #e5e5e7; /* Цвет текста */
+        margin: 0; /* Без внешних отступов */
+    }
+
+    /* Текстовая область формы */
+    #request-form textarea {
+        resize: vertical; /* Возможность изменения высоты */
+        min-height: 100px; /* Минимальная высота текстовой области */
+    }
+
+    /* Кнопка отправки формы */
+    #request-form button {
+        display: block; /* Кнопка отображается как блок */
+        width: 100%; /* Ширина кнопки на всю ширину контейнера */
+        padding: 10px; /* Внутренние отступы */
+        border: none; /* Без границы */
+        border-radius: 5px; /* Закругленные углы */
+        background-color: #7eca1d; /* Фон кнопки */
+        color: #fff; /* Цвет текста */
+        cursor: pointer; /* Указатель при наведении */
+        font-size: 16px; /* Размер шрифта */
+        margin-top: 20px; /* Отступ сверху */
+        box-sizing: border-box; /* Учитываем внутренние отступы в ширине */
+    }
+
+    /* Отображение чата при активной вкладке */
+    .tab.active ~ #chat-input {
+        display: flex; /* Flexbox для размещения элементов */
+    }
+
+    /* Отображение формы заявки при активной вкладке */
+    .tab.active ~ #request-form {
+        display: block; /* Показываем форму */
+    }
+
+    /* Контактная информация */
+    #contact-info {
+        padding: 15px; /* Внутренние отступы */
+        background-color: #2c2c2e; /* Фон блока */
+        border-radius: 10px; /* Закругленные углы */
+        color: #e5e5e7; /* Цвет текста */
+    }
+
+    /* Отступы между абзацами контактной информации */
+    #contact-info p {
+        margin: 10px 0; /* Отступы сверху и снизу */
+    }
+
+    /* Аватар пользователя */
+    .user-avatar img {
+        width: 30px; /* Ширина аватара */
+        height: 30px; /* Высота аватара */
+        border: 2px solid #00bfff; /* Голубая граница вокруг аватара */
+    }
+
+    /* Скрытые элементы */
+    .hidden {
+        display: none; /* Элемент не отображается */
+        visibility: hidden; /* Элемент невидим, но занимает место */
+        opacity: 0; /* Полупрозрачный элемент */
+    }
+
+    /* Отображение списка заявок при активной вкладке */
+    .tab.active ~ #request-list {
+        display: block; /* Показываем список заявок */
+        scrollbar-width: none; /* Убираем стандартные полосы прокрутки */
+    }
+
+    /* Список заявок */
+    #request-list {
+        display: none; /* Изначально скрыт */
+        background-color: #2c2c2e; /* Фон списка */
+        padding: 20px; /* Внутренние отступы */
+        border-radius: 10px; /* Закругленные углы */
+        margin-top: 10px; /* Отступ сверху */
+        color: #e5e5e7; /* Цвет текста */
+        max-height: 200px; /* Максимальная высота с прокруткой */
+        overflow-y: auto; /* Прокрутка по вертикали */
+        scrollbar-width: none; /* Убираем полосы прокрутки */
+    }
+
+    /* Убираем полосу прокрутки для WebKit браузеров */
+    #request-list::-webkit-scrollbar {
+        display: none; /* Скрываем полосу прокрутки */
+    }
+
+    /* Каждая заявка внутри списка */
+    #request-list div {
+        background-color: #3a3a3c; /* Фон заявки */
+        margin-top: 10px; /* Отступ сверху */
+        padding: 15px; /* Внутренние отступы */
+        border-radius: 10px; /* Закругленные углы */
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Тень под заявкой */
+        color: #ffffff; /* Цвет текста */
+    }
+
+    /* Выделение жирным важных данных заявки */
+    #request-list div p strong {
+        font-weight: bold; /* Жирный шрифт */
+        color: #7eca1d; /* Зеленый цвет для выделения */
+    }
+
+    /* Отступы между абзацами в заявке */
+    #request-list div p {
+        margin: 5px 0; /* Отступы сверху и снизу */
+    }
+
+}
