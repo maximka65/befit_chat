@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" href="/static/filename/favicon.ico" type="image/x-icon">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <title>Chat Widget</title>
+</head>
+<body>
+    <div id="chat-widget">
+        <div id="chat-header">
+            <div id="header-content">
+                <span id="phone-number">Поговорим о питании и ЗОЖ с твоим ассистентом Befit</span>
+                <button id="close-chat">✕</button>
+            </div>
+            <div id="chat-tabs">
+                <button class="tab active">
+                    <img src="/static/filename/чат.png" alt="Чат"> Чат
+                </button>
+                <button class="tab">
+                    <img src="/static/filename/заявки.png" alt="Заявка"> Заявка
+                </button>
+                <button class="tab">
+                    <img src="/static/filename/контакты.png" alt="Контакты"> Контакты
+                </button>
+            </div>
+        </div>
+        <div id="chat-messages">
+            <div class="message">
+                <div class="avatar"><img src="/static/filename/аватар.png" alt="avatar"></div>
+                <div class="message-content">
+                    <p>Привет! Я ваш виртуальный ассистент по питанию и здоровью BeFit. Если вам нужны советы по нашим готовым рационам, здоровому питанию или помощь в достижении ваших целей, обращайтесь ко мне. Жду ваших вопросов и с радостью помогу вам на пути к здоровому образу жизни!</p>
+                </div>
+            </div>
+        </div>
+        <div id="chat-input">
+            <input type="text" placeholder="Введите сообщение">
+            <button id="send-message">
+                <img src="/static/filename/отправить.png" alt="Отправить">
+            </button>
+        </div>
+
+        <div id="request-form" style="display: none;">
+            <h3>Форма заявки</h3>
+            <form id="form-request">
+                <label for="name">Имя:</label>
+                <input type="text" id="name" name="name" required>
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required>
+                <label for="message">Сообщение:</label>
+                <textarea id="message" name="message" required></textarea>
+                <button type="submit">Отправить</button>
+            </form>
+        </div>
+
+        <div id="contact-info" style="display: none;">
+            <h3>Контактная информация</h3>
+            <p><strong>Email:</strong> support@befit.com</p>
+            <p><strong>Телефон:</strong> +7 (123) 456-7890</p>
+            <p><strong>Адрес:</strong> г. Москва, ул. Примерная, д. 1</p>
+        </div>
+
+    </div>
+
+    <button id="open-chat">💬</button>
+
+    <script src="/static/js/chat-widget.js"></script>
+</body>
+</html>
